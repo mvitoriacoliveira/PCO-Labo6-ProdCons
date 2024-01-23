@@ -14,13 +14,35 @@
 #include "computationmanager.h"
 
 
-ComputationManager::ComputationManager(int maxQueueSize): MAX_TOLERATED_QUEUE_SIZE(maxQueueSize)
-{
+ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE(maxQueueSize) {
     // TODO
+    /*
+    requests.resize(ComputationType.values().length);
+    // Initialize the request vector with vectors of the specified size for each ComputationType
+    for (ComputationType type: {ComputationType::A, ComputationType::B, ComputationType::C}) {
+        requests[type] = std::vector<Request>(maxQueueSize);
+    }
+
+    notFull.resize(ComputationType.values().length);
+    */
 }
 
+// Client
+// Potentiellement bloquante
 int ComputationManager::requestComputation(Computation c) {
     // TODO
+    monitorIn();
+    // Wait while full
+    /*
+    while (requests[c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE) {
+        wait(notFull[c.computationType]);
+    }
+    */
+
+    // TODO continuer...
+
+
+    monitorOut();
     return -1;
 }
 
@@ -40,7 +62,10 @@ Result ComputationManager::getNextResult() {
 
     return Result(-1, 0.0);
 }
+// End Client
 
+// Calculateur
+// Potentiellement bloquante
 Request ComputationManager::getWork(ComputationType computationType) {
     // TODO
     // Replace all of the code below by your code
@@ -62,6 +87,7 @@ bool ComputationManager::continueWork(int id) {
 void ComputationManager::provideResult(Result result) {
     // TODO
 }
+// End Calculateur
 
 void ComputationManager::stop() {
     // TODO
