@@ -15,27 +15,28 @@
 #define COMPUTATIONMANAGER_H
 
 // Ajoutez les includes dont vous avez besoin ici
-
 #include <memory>
+#include <vector>
 
 #include "pcosynchro/pcohoaremonitor.h"
 
 /**
  * @brief The ComputationType enum represents the abstract computation types that are available
  */
-enum class ComputationType {A, B, C};
+enum class ComputationType { A,
+                             B,
+                             C };
 
 /**
  * @brief The Computation class Represents a computation with a given type and data.
  */
-class Computation
-{
+class Computation {
 public:
     /**
      * @brief Computation Constructs a computation of a given type
      * @param computationType
      */
-    Computation(ComputationType computationType): computationType(computationType) {data = std::make_shared<std::vector<double>>();}
+    Computation(ComputationType computationType) : computationType(computationType) { data = std::make_shared<std::vector<double>>(); }
 
     /**
      * @brief computationType The given type
@@ -50,14 +51,13 @@ public:
 /**
  * @brief The Request class is a request for a computation with and id and data
  */
-class Request
-{
+class Request {
 public:
-    Request(): data(nullptr) {}
-    Request(std::shared_ptr<std::vector<double>> data, int id): data(std::move(data)), id(id) {}
-    Request(const Computation& c, int id): data(c.data), id(id) {}
+    Request() : data(nullptr) {}
+    Request(std::shared_ptr<std::vector<double>> data, int id) : data(std::move(data)), id(id) {}
+    Request(const Computation &c, int id) : data(c.data), id(id) {}
 
-    [[nodiscard]] int getId() const {return id;}
+    [[nodiscard]] int getId() const { return id; }
 
     /**
      * @brief data The data for the computation
@@ -71,13 +71,12 @@ private:
 /**
  * @brief The Result class holds a result and an id
  */
-class Result
-{
+class Result {
 public:
-    Result(int id, double result): id(id), result(result) {}
+    Result(int id, double result) : id(id), result(result) {}
 
-    [[nodiscard]] int getId() const {return id;}
-    [[nodiscard]] double getResult() const {return result;}
+    [[nodiscard]] int getId() const { return id; }
+    [[nodiscard]] double getResult() const { return result; }
 
 private:
     int id;
@@ -87,8 +86,7 @@ private:
 /**
  * @brief The ClientInterface class contains the methods of the buffer that are exposed to the client
  */
-class ClientInterface
-{
+class ClientInterface {
 public:
     /**
      * @brief requestComputation Request a computation c
@@ -119,8 +117,7 @@ public:
 /**
  * @brief The ComputeEngineInterface class contains the methods of the buffer that are exposed to the compute engines
  */
-class ComputeEngineInterface
-{
+class ComputeEngineInterface {
 public:
     /**
      * @brief getWork is used to ask for work of a given type which will come as a Request
@@ -147,8 +144,7 @@ public:
  * @brief The ComputationManager class is the implementation of the shared buffer between client and compute engines.
  * It is to be implemented as a Hoare monitor.
  */
-class ComputationManager : public ClientInterface, public ComputeEngineInterface, protected PcoHoareMonitor
-{
+class ComputationManager : public ClientInterface, public ComputeEngineInterface, protected PcoHoareMonitor {
 public:
     /**
      * @brief The StopException class is an exception that is thrown when a thread tries to wait
@@ -181,12 +177,24 @@ public:
     void stop();
 
 protected:
-
     // Ajoutez vos attributs et déclarations de méthodes ici
     // P.ex. variables conditions et structure de données pour le buffer
 
     // Queues
     const size_t MAX_TOLERATED_QUEUE_SIZE;
+
+    // Buffer structure
+    std::vector<std::queue<Request>> requests;
+
+    int writePointerA = 0, writePointerB = 0, writePointerC = 0;
+    int readPointerA = 0, readPointerB = 0, readPointerC = 0;
+
+    // Number of elements in each queue
+    int nbElementsA = 0, nbElementsB = 0, nbElementsC = 0;
+
+    // Conditions
+    std::vector<Condition> notFull;
+    // TODO ajouter d'autres conditions
 
     bool stopped = false;
 
@@ -194,9 +202,9 @@ private:
     /**
      * @brief throwStopException Throws a StopException (will be handled by the caller)
      */
-    inline void throwStopException() {throw StopException();}
+    inline void throwStopException() { throw StopException(); }
 
     int nextId = 0;
 };
 
-#endif // COMPUTATIONMANAGER_H
+#endif// COMPUTATIONMANAGER_H
