@@ -15,7 +15,9 @@
 #define COMPUTATIONMANAGER_H
 
 // Ajoutez les includes dont vous avez besoin ici
+#include <map>
 #include <memory>
+#include <queue>
 #include <vector>
 
 #include "pcosynchro/pcohoaremonitor.h"
@@ -25,7 +27,11 @@
  */
 enum class ComputationType { A,
                              B,
-                             C };
+                             C,
+                             Count// Count must be the last element of the enum, as it is used to know the number of elements
+};
+
+constexpr static std::size_t NB_COMPUTATION_TYPES = static_cast<std ::size_t>(ComputationType::Count);
 
 /**
  * @brief The Computation class Represents a computation with a given type and data.
@@ -184,16 +190,11 @@ protected:
     const size_t MAX_TOLERATED_QUEUE_SIZE;
 
     // Buffer structure
-    std::vector<std::queue<Request>> requests;
-
-    int writePointerA = 0, writePointerB = 0, writePointerC = 0;
-    int readPointerA = 0, readPointerB = 0, readPointerC = 0;
-
-    // Number of elements in each queue
-    int nbElementsA = 0, nbElementsB = 0, nbElementsC = 0;
+    std::array<std::queue<Request>, NB_COMPUTATION_TYPES> requests;
 
     // Conditions
-    std::vector<Condition> notFull;
+    std::vector<Condition> notFull;//Bloque requestComputation si la queue est pleine
+    std::vector<Condition> notEmpty;
     // TODO ajouter d'autres conditions
 
     bool stopped = false;

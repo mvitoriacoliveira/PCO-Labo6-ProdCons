@@ -17,13 +17,15 @@
 ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE(maxQueueSize) {
     // TODO
     /*
-    requests.resize(ComputationType.values().length);
+    requests.resize(static_cast<size_t>(ComputationType::Count));
+
     // Initialize the request vector with vectors of the specified size for each ComputationType
-    for (ComputationType type: {ComputationType::A, ComputationType::B, ComputationType::C}) {
-        requests[type] = std::vector<Request>(maxQueueSize);
+    for (int i = 0; i < static_cast<int>(ComputationType::Count); ++i) {
+        requests[i] = std::queue<Request>();
+        notFull.push_back(Condition());
     }
 
-    notFull.resize(ComputationType.values().length);
+    //notFull.resize(static_cast<size_t>(ComputationType::Count));
     */
 }
 
@@ -32,17 +34,24 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
 int ComputationManager::requestComputation(Computation c) {
     // TODO
     monitorIn();
-    // Wait while full
     /*
+    // Wait while full
     while (requests[c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE) {
-        wait(notFull[c.computationType]);
+        wait(notFull[static_cast<size_t>(c.computationType)]);
     }
+
+    // Add the request to the queue
+    int id = nextId;
+
+    requests[c.computationType].push(Request(c, nextId++));
+    // Increment the number of elements in the queue for this computation type
+    nbElements[static_cast<size_t>(c.computationType)]++;
+
+    // Signal that the queue is not empty
+    signal(notEmpty[static_cast<size_t>(c.computationType)]);
     */
-
-    // TODO continuer...
-
-
     monitorOut();
+    //return id;
     return -1;
 }
 
@@ -72,8 +81,27 @@ Request ComputationManager::getWork(ComputationType computationType) {
 
     // Filled with arbitrary code in order to make the callers wait
     monitorIn();
+    /*
+    // Wait while empty
+    while (requests[static_cast<size_t>(computationType)].empty()) {
+        wait(notEmpty[static_cast<size_t>(computationType)]);
+    }
+
+    // Get the request
+    Request request = requests[static_cast<size_t>(computationType)].front();
+
+    // Remove the request from the queue
+    requests[static_cast<size_t>(computationType)].pop();
+    // Decrement the number of elements in the queue for this computation type
+    nbElements[static_cast<size_t>(computationType)]--;
+
+    // Signal that the queue is not full
+    signal(notFull[static_cast<size_t>(computationType)]);
+    */
+    /*
     auto c = Condition();
     wait(c);
+    */
     monitorOut();
 
     return Request(Computation(computationType), -1);
