@@ -194,8 +194,8 @@ protected:
 
 
     // Conditions
-    std::vector<Condition> notFull(NB_COMPUTATION_TYPES);//Bloque requestComputation si la queue est pleine
-    std::vector<Condition> notEmpty(NB_COMPUTATION_TYPES);
+    std::vector<std::unique_ptr<Condition>> notFull;//Bloque requestComputation si la queue est pleine
+    std::vector<std::unique_ptr<Condition>> notEmpty;
     // TODO ajouter d'autres conditions
 
     bool stopped = false;
