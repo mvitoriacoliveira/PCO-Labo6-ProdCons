@@ -190,11 +190,12 @@ protected:
     const size_t MAX_TOLERATED_QUEUE_SIZE;
 
     // Buffer structure
-    std::array<std::queue<Request>, NB_COMPUTATION_TYPES> requests;
+    std::array<std::map<int, Request>, NB_COMPUTATION_TYPES> requests;
+
 
     // Conditions
-    std::vector<Condition> notFull;//Bloque requestComputation si la queue est pleine
-    std::vector<Condition> notEmpty;
+    std::vector<Condition> notFull(NB_COMPUTATION_TYPES);//Bloque requestComputation si la queue est pleine
+    std::vector<Condition> notEmpty(NB_COMPUTATION_TYPES);
     // TODO ajouter d'autres conditions
 
     bool stopped = false;

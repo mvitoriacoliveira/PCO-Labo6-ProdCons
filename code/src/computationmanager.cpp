@@ -21,8 +21,9 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
 
     // Initialize the request vector with vectors of the specified size for each ComputationType
     for (int i = 0; i < static_cast<int>(ComputationType::Count); ++i) {
-        requests[i] = std::queue<Request>();
+        requests[i] = std::map<int, Request>();
         notFull.push_back(Condition());
+        notEmpty.push_back(Condition());
     }
 
     //notFull.resize(static_cast<size_t>(ComputationType::Count));
@@ -34,25 +35,23 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
 int ComputationManager::requestComputation(Computation c) {
     // TODO
     monitorIn();
-    /*
+
     // Wait while full
-    while (requests[c.computationType].size() == MAX_TOLERATED_QUEUE_SIZE) {
+    while (requests[static_cast<size_t>(c.computationType)].size() == MAX_TOLERATED_QUEUE_SIZE) {
         wait(notFull[static_cast<size_t>(c.computationType)]);
     }
 
     // Add the request to the queue
-    int id = nextId;
+    int id = nextId++;
 
-    requests[c.computationType].push(Request(c, nextId++));
-    // Increment the number of elements in the queue for this computation type
-    nbElements[static_cast<size_t>(c.computationType)]++;
+    requests[static_cast<size_t>(c.computationType)].emplace(id, Request(c, id));
 
     // Signal that the queue is not empty
     signal(notEmpty[static_cast<size_t>(c.computationType)]);
-    */
+
     monitorOut();
-    //return id;
-    return -1;
+    return id;
+    //return -1;
 }
 
 void ComputationManager::abortComputation(int id) {
