@@ -98,7 +98,7 @@ Request ComputationManager::getWork(ComputationType computationType) {
 
     monitorOut();
 
-    return Request(Computation(computationType), -1);
+    return request;
 }
 
 bool ComputationManager::continueWork(int id) {
