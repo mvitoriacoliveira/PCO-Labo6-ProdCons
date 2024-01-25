@@ -53,6 +53,7 @@ int ComputationManager::requestComputation(Computation c) {
 
 void ComputationManager::abortComputation(int id) {
     // TODO
+    /* Plusieurs cas possibles: */
 }
 
 Result ComputationManager::getNextResult() {
@@ -71,6 +72,8 @@ Result ComputationManager::getNextResult() {
 
 // Calculateur
 // Potentiellement bloquante
+/* Cette méthode permet au calculateur de demander du travail du type computationType,
+qu’il reçoit sous forme d’une requête de calcul.*/
 Request ComputationManager::getWork(ComputationType computationType) {
     // TODO
     // Replace all of the code below by your code
@@ -83,19 +86,16 @@ Request ComputationManager::getWork(ComputationType computationType) {
         wait(*notEmpty[static_cast<size_t>(computationType)]);
     }
 
-    // Get the request
+    // Get the request for specified type
+    // (Gets always first request in the map because request is removed from requests map as it is assigned to a calculator)
     Request request = requests[static_cast<size_t>(computationType)][0];
 
-    // Remove the request from the queue
+    // Remove the request from the map
     requests[static_cast<size_t>(computationType)].erase(requests[static_cast<size_t>(computationType)].begin());
 
     // Signal that the queue is not full
     signal(*notFull[static_cast<size_t>(computationType)]);
 
-    /*
-    auto c = Condition();
-    wait(c);
-    */
     monitorOut();
 
     return Request(Computation(computationType), -1);
