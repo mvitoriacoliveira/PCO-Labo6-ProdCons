@@ -18,24 +18,11 @@
 ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE((size_t) maxQueueSize) {
     // Initialize the request vector with vectors of the specified size for each ComputationType
     for (size_t i = 0; i < NB_COMPUTATION_TYPES; ++i) {
-        //requests.at(i] = std::map<int, Request>();
         notFull.at(i) = (std::make_unique<Condition>());
         notEmpty.at(i) = (std::make_unique<Condition>());
     }
 }
 
-//TODO: should we keep this ??
-void ComputationManager::dumpRequests() {
-    unsigned type = 0;
-    std::cout << "Dumping requests maps" << std::endl;
-    for (auto requestMap: requests) {
-        std::cout << "map n: " << type << std::endl;
-        for (auto request: requestMap) {
-            std::cout << "request id:" << request.second.getId() << " and data: " << request.second.data << std::endl;
-        }
-        type++;
-    }
-}
 // Client
 // Potentiellement bloquante
 int ComputationManager::requestComputation(Computation c) {
@@ -152,6 +139,8 @@ Request ComputationManager::getWork(ComputationType computationType) {
     //We take the element with the smallest id, as a map is indexed by id and ordered by index
     //we can just take the element pointed by begin().
     Request request = requests.at(computationIndex).begin()->second;
+
+    std::cout << "getWork request type " << computationIndex << " and id " << request.getId() << std::endl;
 
     // Remove the request from the map because it is assigned to a calculator
     requests.at(computationIndex).erase(requests.at(computationIndex).begin());
