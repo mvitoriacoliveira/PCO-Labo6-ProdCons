@@ -8,8 +8,18 @@ A faire:
         Create a scenario where a large number of computations are requested and processed. Measure the time it takes for the computations to complete and check if the results are correct.
 - Edge Cases:
         Test with extreme cases, such as having only one computation type, having only one compute engine, or having a very high buffer capacity.
-    
 
+-  When any requests are issued while its corresponding worker is busy, the requests wait. Each result is
+returned in order
+- When the buffer for a given type is full, and an unfinished computation of the same type is aborted,
+another computation request of the same type may be added.
+- When a result for a computation is available but is waiting on a computation of another type to finish
+before being displayed, cancellation of the computation will not display the result    
+- A cancellation request for an already cancelled workload is logged, but ignored.
+- A cancellation request for an already finished and displayed workload is logged, but ignored.
+- When no request are present, the program stops immediately and the threads are joined.
+- When the program is stopped and a request for a new computation is issued, the request is ignored.
+- When the program is stopped and a cancellation request is issued, the cancellation is ignored.
 
 Tests fournis: (Liste pour nous)
 - When the queues can contain 2 elements we should block with the third deposit
