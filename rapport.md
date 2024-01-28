@@ -4,13 +4,14 @@ Auteur·ices: Vitória Oliveira et Samuel Roland
 
 ## Attributs partagés
 ```cpp
-constexpr static std::size_t NB_COMPUTATION_TYPES = static_cast<std ::size_t>(ComputationType::Count);
-// Où count est le dernier élément de l'enum ComputationType permettant ainsi de récupérer le nombre de types différents. 
+constexpr static std::size_t NB_COMPUTATION_TYPES 
+	= static_cast<std ::size_t>(ComputationType::Count);
+// Où count est le dernier élément de l'enum ComputationType permettant ainsi 
+// de récupérer le nombre de types différents. 
 ```
 Cette constante nous permet de facilement dimensionner et parcourir nos conteneurs.
 
 ```cpp
-// Buffer structure
 std::array<std::map<int, Request>, NB_COMPUTATION_TYPES> requests;
 std::map<int, std::optional<Result>> results;
 ```
@@ -47,6 +48,7 @@ Les tests fournis nous ont été très utiles et passent tous. Nous avons remarq
 
 **Tests**  
 En plus des tests fournis, nous avons vérifié le bon fonctionnement de ces méthodes en effectuant des tests manuels via l'interface et en consultant les logs. Nous avons initié plusieurs demandes de calcul sur les différents calculateurs et nous avons vérifié que les identifiants étaient attribués dans le bon ordre. Nous nous sommes assurés que les demandes de calcul étaient également traitées dans le bon ordre, que les requêtes étaient récupérées par les calculateurs appropriés et dans le bon ordre. De plus, nous avons confirmé que chaque calculateur obtenait une requête de calcul lorsqu'il était effectivement disponible
+
 
 ## Étape 2
 1. `Result getNextResult()`
