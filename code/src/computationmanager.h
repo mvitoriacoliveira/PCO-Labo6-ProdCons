@@ -30,7 +30,7 @@
 enum class ComputationType { A,
                              B,
                              C,
-                             Count// Count must be the last element of the enum, as it is used to know the number of elements
+                             Count  // Count must be the last element of the enum, as it is used to know the number of elements
 };
 
 constexpr static std::size_t NB_COMPUTATION_TYPES = static_cast<std ::size_t>(ComputationType::Count);
@@ -195,15 +195,14 @@ protected:
     std::array<std::map<int, Request>, NB_COMPUTATION_TYPES> requests;
     std::map<int, std::optional<Result>> results;
 
-    void dumpRequests();
-    void stopExecutionIfEndOfService(Condition &cond);
-
     // Conditions
     std::array<std::unique_ptr<Condition>, NB_COMPUTATION_TYPES> notFull;//Bloque requestComputation si la queue est pleine
     std::array<std::unique_ptr<Condition>, NB_COMPUTATION_TYPES> notEmpty;
     Condition nextResultReady;
 
     bool stopped = false;
+
+    void stopExecutionIfEndOfService(Condition &cond);
 
 private:
     /**
