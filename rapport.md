@@ -35,15 +35,29 @@ Condition nextResultReady;
 
 
 ## Etape 1
-— `Result getNextResult()`:
-— `void provideResult(Result result)`:
+— `int requestComputation(Computation c)`
+    Elle bloque si le conteneur du type de computation demandé est plein. 
+    Cette méthode crée une requête de calcul et l'insère dans `requests` du type de computation passé en paramètre. En plus, elle place à la fin de la map `results` un nouvel résultat nul.
+    Elle permet de réveiller un thread qui attend sur la condition `notEmpty` du type de computation donné. 
+    Finalement, elle retourne l'id assigné à la demande de calcul. 
+— `Request getWork(ComputationType computationType)`
+    Cette méthode bloque lorsque `requests` est vide. Sinon, elle accède au premier élément de celui-ci et récupère la requête qu'y est stockée. Une fois ceci effectué, la requête est rétirée du conteneur. 
+    Elle permet de réveiller un thread qui attend sur la condition `notFull` du type de computation de la requête demandée. 
 
 **Tests**
+En plus des tests fournis, nous avons vérifié le bon fonctionnement de ces méthodes en effectuant des tests manuels via l'interface et en consultant les journaux d'exécution (logs). Nous avons initié plusieurs demandes de calcul sur les différents calculateurs et nous avons vérifié que les identifiants étaient attribués dans le bon ordre. Nous nous sommes assurés que les demandes de calcul étaient également traitées dans le bon ordre, que les requêtes étaient récupérées par les calculateurs appropriés et dans le bon ordre. De plus, nous avons confirmé que chaque calculateur obtenait une requête de calcul lorsqu'il était effectivement disponible
 
 ## Etape 2
-- `
+— `Result getNextResult()`
+    Cette méthode bloque si `results` est vide ou si le premier `Result` dans ce conteneur n'a pas encore de valeur (cad le calcul n'est pas encore fini et retourné). Autrement, elle copie le premier résultat qu'y est stocké, l'efface du conteneur et le retourne. 
+    Elle permet de réveiller un thread qui attend sur le prochain résultat à retourner. 
+
+— `void provideResult(Result result)`
+    Cette méthode insère le resultat passé en paramètre dans `results` à la position de l'id de `result`. 
+    Elle permet de réveiller un thread qui attend sur le prochain résultat à retourner. 
+
 **Tests**
-1. 
+Autre que les tests déjà fournis, nous avons effectués plusieurs tests via l'interface. Nous avons vérifié que les résultats étaient retournés dans le bon ordre et le cas où `getNextResult()` est censé bloquer. 
 
 ## Etape 3
 1. 
