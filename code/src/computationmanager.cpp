@@ -14,15 +14,15 @@
 #include "computationmanager.h"
 
 
-ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE(maxQueueSize) {
+ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE((size_t) maxQueueSize) {
     // TODO
 
     notFull.reserve(NB_COMPUTATION_TYPES);
     notEmpty.reserve(NB_COMPUTATION_TYPES);
 
     // Initialize the request vector with vectors of the specified size for each ComputationType
-    for (int i = 0; i < NB_COMPUTATION_TYPES; ++i) {
-        //requests[i] = std::map<int, Request>();
+    for (size_t i = 0; i < NB_COMPUTATION_TYPES; ++i) {
+        //requests.at(i] = std::map<int, Request>();
         notFull.push_back(std::make_unique<Condition>());
         notEmpty.push_back(std::make_unique<Condition>());
     }
@@ -32,22 +32,25 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
 // Potentiellement bloquante
 int ComputationManager::requestComputation(Computation c) {
     // TODO
+    size_t computationIndex = static_cast<size_t>(c.computationType);
+
     monitorIn();
 
-    // Wait while full
-    while (requests[static_cast<size_t>(c.computationType)].size() == MAX_TOLERATED_QUEUE_SIZE) {
-        wait(*notFull[static_cast<size_t>(c.computationType)]);
+    // Wait while the queue of the current computation type is full
+    while (requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
+        wait(*notFull.at(computationIndex));
     }
 
     // Add the request to the queue
     int id = nextId++;
-    requests[static_cast<size_t>(c.computationType)].emplace(id, Request(c, id));
+
+    requests.at(computationIndex).emplace(id, Request(c, id));
 
     // Add a result object to result to ensure correct order
     results.emplace(id, std::nullopt);
 
     // Signal that the queue is not empty
-    signal(*notEmpty[static_cast<size_t>(c.computationType)]);
+    signal(*notEmpty[computationIndex]);
 
     monitorOut();
     return id;
@@ -65,7 +68,7 @@ void ComputationManager::abortComputation(int id) {
         auto it = requestMapPerType.find(id);
         if(it != requestMapPerType.end()){
             requestMapPerType.erase(it);
-            signal(*notFull[static_cast<size_t>(currentType)]);
+            signal(*notFull.at(static_cast<size_t>(currentType)));
 
             // Il faudra libérer le thread qui attend  sur le résultat de la requete/résultat interrompu
             //bool threadIsWaitingOnResult = (results[id] == results.begin() ? true : false);
@@ -113,24 +116,25 @@ dans le moniteur (buffer) et il sera réveillé lorsqu’il y en aura. */
 Request ComputationManager::getWork(ComputationType computationType) {
     // TODO
     // Replace all of the code below by your code
+    size_t computationIndex = static_cast<size_t>(computationType);
 
     // Filled with arbitrary code in order to make the callers wait
     monitorIn();
 
     // Wait while empty
-    while (requests[static_cast<size_t>(computationType)].empty()) {
-        wait(*notEmpty[static_cast<size_t>(computationType)]);
+    while (requests.at(computationIndex).empty()) {
+        wait(*notEmpty.at(computationIndex));
     }
 
     // Get the request for specified type
     // (Gets always first request in the map because request is removed from requests map as it is assigned to a calculator)
-    Request request = requests[static_cast<size_t>(computationType)][0];
+    Request request = requests.at(computationIndex).at(0);
 
     // Remove the request from the map
-    requests[static_cast<size_t>(computationType)].erase(requests[static_cast<size_t>(computationType)].begin());
+    requests.at(computationIndex).erase(requests.at(computationIndex).begin());
 
     // Signal that the queue is not full
-    signal(*notFull[static_cast<size_t>(computationType)]);
+    signal(*notFull.at(computationIndex));
 
     monitorOut();
 
@@ -150,7 +154,7 @@ void ComputationManager::provideResult(Result result) {
     monitorIn();
 
     // Put result in results map
-    results[result.getId()] = result;
+    results.at(result.getId()) = result;
 
     signal(newResult);
 
