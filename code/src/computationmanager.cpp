@@ -49,11 +49,7 @@ int ComputationManager::requestComputation(Computation c) {
         wait(*notFull.at(computationIndex));
     }
 
-    if (stopped) {
-        signal(*notFull.at(computationIndex));
-        monitorOut();
-        throwStopException();
-    }
+    stopExecutionIfEndOfService(*notFull.at(computationIndex));
 
     // Add the request to the queue
     int id = nextId++;
@@ -117,11 +113,7 @@ Result ComputationManager::getNextResult() {
         wait(nextResultReady);
     }
 
-    if (stopped) {
-        signal(nextResultReady);
-        monitorOut();
-        throwStopException();
-    }
+    stopExecutionIfEndOfService(nextResultReady);
 
     Result res = results.begin()->second.value();
     results.erase(results.begin());
@@ -153,11 +145,7 @@ Request ComputationManager::getWork(ComputationType computationType) {
         wait(*notEmpty.at(computationIndex));
     }
 
-    if (stopped) {
-        signal(*notEmpty.at(computationIndex));
-        monitorOut();
-        throwStopException();
-    }
+    stopExecutionIfEndOfService(*notEmpty.at(computationIndex));
 
     // Get the request for specified type
     //We take the element with the smallest id, as a map is indexed by id and ordered by index
@@ -219,4 +207,14 @@ void ComputationManager::stop() {
 
     // TODO
     monitorOut();
+}
+
+// When the service is stopped, we want to wake up all sleeping threads in cascade
+//and stop with an exception
+void ComputationManager::stopExecutionIfEndOfService(Condition &cond) {
+    if (stopped) {
+        signal(cond);
+        monitorOut();
+        throwStopException();
+    }
 }

@@ -195,6 +195,7 @@ protected:
     std::map<int, std::optional<Result>> results;
 
     void dumpRequests();
+    void stopExecutionIfEndOfService(Condition &cond);
 
     // Conditions
     std::array<std::unique_ptr<Condition>, NB_COMPUTATION_TYPES> notFull;//Bloque requestComputation si la queue est pleine
