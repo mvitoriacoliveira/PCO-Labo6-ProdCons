@@ -18,7 +18,7 @@ Ces deux structures représentent notre buffer.
 La première sert à stocker les requêtes de calculs qui n'ont pas encore été attribuées à des calculateurs. Chaque type de computation (ComputationType) possède sa propre map indexée par id. 
 Le deuxième conteneur permet de stocker les résultats des calculs en attente d'être renvoyés au client. Le type optional nous permet d'allouer notre résultat dans la map avant d'avoir le vrai résultat du calculateur afin d'assurer l'ordre, l'attente et l'annulation des retours des calculs.   
 
-L'utilisation des mapes nous permet de facilement accéder et retirer un élément par son id, mais aussi en utilisant l'id comme clé, cela nous assure que les requêtes et les résultats sont toujours ordonnés et nous pouvons facilement accéder à l'élément avec le plus petit id via l'itérateur begin. 
+L'utilisation des maps comme file d'attente (au lieu d'une `std::queue`) permet de facilement accéder et retirer un élément par son id, mais aussi en utilisant l'id comme clé, cela nous assure que les requêtes et les résultats sont toujours ordonnés et nous pouvons facilement accéder à l'élément avec le plus petit id via l'itérateur begin. 
 
 ```c++
 // Conditions
@@ -33,6 +33,10 @@ Condition nextResultReady;
 3. `nextResultReady`
    Permet de rêlacher le thread attendant sur le prochain résultat. 
 
+## Tests fournis
+Les tests fournis nous ont été très utiles et passent tous. Nous avons remarqués certains cas non testés que nous avons vérifié manuellement. (D'ailleurs merci beaucoup pour ces tests c'est très pratique!)
+
+![provided-tests-pass.png](imgs/provided-tests-pass.png)
 
 ## Etape 1
 — `int requestComputation(Computation c)`
@@ -74,12 +78,26 @@ Autre que les tests déjà fournis, nous avons effectués plusieurs tests via l'
 1. Si on lance un calcul de type A puis de type B, qu'on attend que le calcul B soit disponible, qu'on cancel le A, le résultat B est directement retourné.
 
 ## Etape 4
-
+Attributs concernés:
 ```c++
 bool stopped = false;
 void stopExecutionIfEndOfService(Condition &cond);
 ```
 
+Nous avons l'attribut `stopped` pour définir que le système doit s'arrêter. Nous avons adapté `continueWork()` pour retourner `false` si `stopped == true`.
+
+Nous faisons `stopped = true;` puis nous signalons toutes les variables de conditions afin de réveiller tous les threads endormis. Un seul thread est réveillé à chaque signal mais comme il y a toujours un signal un peu après les `wait()`, les réveils se font en cascade.
+
+Dans chacun de nos `while` autour des `wait()` sur nos variables de conditions, nous avons ajoutés `!stopped && ...` afin d'empêcher que de nouveaux threads se mettent en attente durant l'arrêt, que les threads réveillés ne se rendorment pas à cause des autres conditions du while.
+
+Ensuite, nous avons du répêté le pattern suivant juste après le `while`, que nous avons finalement extrait dans `stopExecutionIfEndOfService()`
+```cpp
+if (stopped) {
+	signal(cond);
+	monitorOut();
+	throwStopException();
+}
+```
+
 **Tests**
 1. 
-
