@@ -50,7 +50,7 @@ int ComputationManager::requestComputation(Computation c) {
     results.emplace(id, std::nullopt);
 
     // Signal that the queue is not empty
-    signal(*notEmpty[computationIndex]);
+    signal(*notEmpty.at(computationIndex));
 
     monitorOut();
     return id;
@@ -60,15 +60,15 @@ int ComputationManager::requestComputation(Computation c) {
 void ComputationManager::abortComputation(int id) {
     // TODO
     monitorIn();
-    
-    // Si la requête/resultat de calcul se trouve dans le buffer
-    for(auto& requestMapPerType : requests){
-        ComputationType currentType = static_cast<ComputationType>(&requestMapPerType - &requests[0]);
 
+    size_t computationIndex = 0;
+
+    // Si la requête/resultat de calcul se trouve dans le buffer
+    for (auto &requestMapPerType: requests) {
         auto it = requestMapPerType.find(id);
-        if(it != requestMapPerType.end()){
+        if (it != requestMapPerType.end()) {
             requestMapPerType.erase(it);
-            signal(*notFull.at(static_cast<size_t>(currentType)));
+            signal(*notFull.at(computationIndex));
 
             // Il faudra libérer le thread qui attend  sur le résultat de la requete/résultat interrompu
             //bool threadIsWaitingOnResult = (results[id] == results.begin() ? true : false);
@@ -77,7 +77,8 @@ void ComputationManager::abortComputation(int id) {
             //    signal(newResult);
             //}
         }
-    }    
+        computationIndex++;
+    }
 
     monitorOut();
 }
@@ -91,8 +92,8 @@ Result ComputationManager::getNextResult() {
     // Filled with some code in order to make the thread in the UI wait
     monitorIn();
 
-    // !results[0].has_value doit retourner faux si 
-    while(results.empty() || !results.begin()->second.has_value()){
+    // !results[0].has_value doit retourner faux si
+    while (results.empty() || !results.begin()->second.has_value()) {
         //wait(notEmpty); //TODO how to get computation type?
         wait(newResult);
     }
@@ -159,7 +160,6 @@ void ComputationManager::provideResult(Result result) {
     signal(newResult);
 
     monitorOut();
-
 }
 // End Calculateur
 
