@@ -3,7 +3,8 @@
 //   / /_/ / /   / / / /   __/ // / / /_/ / /_ <  //
 //  / ____/ /___/ /_/ /   / __// /_/ / __/___/ /  //
 // /_/    \____/\____/   /____/\____/____/____/   //
-// Auteurs : Prénom Nom, Prénom Nom
+// Auteur·ices: Vitória Oliveira et Samuel Roland
+// Date: 28.01.2024
 
 
 // A vous de remplir les méthodes, vous pouvez ajouter des attributs ou méthodes pour vous aider

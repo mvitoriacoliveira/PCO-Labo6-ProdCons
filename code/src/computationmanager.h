@@ -3,7 +3,8 @@
 //   / /_/ / /   / / / /   __/ // / / /_/ / /_ <  //
 //  / ____/ /___/ /_/ /   / __// /_/ / __/___/ /  //
 // /_/    \____/\____/   /____/\____/____/____/   //
-// Auteurs : Prénom Nom, Prénom Nom
+// Auteur·ices: Vitória Oliveira et Samuel Roland
+// Date: 28.01.2024
 
 // La déclaration de la classe ComputationManager se trouve en bas du fichier,
 // ajoutez-y les attributs (et fonctions au besoin) pour votre implémentation.
