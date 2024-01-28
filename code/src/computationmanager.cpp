@@ -15,16 +15,11 @@
 #include <iostream>
 
 ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE((size_t) maxQueueSize) {
-    // TODO
-
-    notFull.reserve(NB_COMPUTATION_TYPES);
-    notEmpty.reserve(NB_COMPUTATION_TYPES);
-
     // Initialize the request vector with vectors of the specified size for each ComputationType
     for (size_t i = 0; i < NB_COMPUTATION_TYPES; ++i) {
         //requests.at(i] = std::map<int, Request>();
-        notFull.push_back(std::make_unique<Condition>());
-        notEmpty.push_back(std::make_unique<Condition>());
+        notFull.at(i) = (std::make_unique<Condition>());
+        notEmpty.at(i) = (std::make_unique<Condition>());
     }
 }
 

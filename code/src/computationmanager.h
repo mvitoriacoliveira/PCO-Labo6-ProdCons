@@ -197,10 +197,8 @@ protected:
     void dumpRequests();
 
     // Conditions
-    std::vector<std::unique_ptr<Condition>> notFull;//Bloque requestComputation si la queue est pleine
-    //std::vector<std::unique_ptr<Condition>> notEmpty;
-    std::vector<std::unique_ptr<Condition>> notEmpty;
-    // TODO ajouter d'autres conditions
+    std::array<std::unique_ptr<Condition>, NB_COMPUTATION_TYPES> notFull;//Bloque requestComputation si la queue est pleine
+    std::array<std::unique_ptr<Condition>, NB_COMPUTATION_TYPES> notEmpty;
     Condition nextResultReady;
 
     bool stopped = false;
