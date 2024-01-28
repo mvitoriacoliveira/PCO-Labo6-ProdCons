@@ -45,8 +45,14 @@ int ComputationManager::requestComputation(Computation c) {
     std::cout << "requestComputation computationIndex" << computationIndex << std::endl;
 
     // Wait while the queue of the current computation type is full
-    while (requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
+    while (!stopped && requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
         wait(*notFull.at(computationIndex));
+    }
+
+    if (stopped) {
+        signal(*notFull.at(computationIndex));
+        monitorOut();
+        throwStopException();
     }
 
     // Add the request to the queue
@@ -80,7 +86,7 @@ void ComputationManager::abortComputation(int id) {
         if (it != requestMapPerType.end()) {
             requestMapPerType.erase(it);
 
-			//Signal the list of the given computation is not full anymore
+            //Signal the list of the given computation is not full anymore
             signal(*notFull.at(computationIndex));
         }
 
@@ -107,8 +113,14 @@ Result ComputationManager::getNextResult() {
     // !results[0].has_value doit retourner faux si
 
     //We have to check or recheck that we have the next result to use is received
-    while (results.empty() || !results.begin()->second.has_value()) {
+    while (!stopped && (results.empty() || !results.begin()->second.has_value())) {
         wait(nextResultReady);
+    }
+
+    if (stopped) {
+        signal(nextResultReady);
+        monitorOut();
+        throwStopException();
     }
 
     Result res = results.begin()->second.value();
@@ -137,8 +149,14 @@ Request ComputationManager::getWork(ComputationType computationType) {
     monitorIn();
 
     // Wait while empty
-    while (requests.at(computationIndex).empty()) {
+    while (!stopped && requests.at(computationIndex).empty()) {
         wait(*notEmpty.at(computationIndex));
+    }
+
+    if (stopped) {
+        signal(*notEmpty.at(computationIndex));
+        monitorOut();
+        throwStopException();
     }
 
     // Get the request for specified type
@@ -160,7 +178,16 @@ Request ComputationManager::getWork(ComputationType computationType) {
 /*Pas bloquante (pas d'appel à wait). Si un calculateur travaille déjà sur la requête il devra arrêter le calcul au prochain appel de
 continueWork(id) et ne pas retourner le résultat.*/
 bool ComputationManager::continueWork(int id) {
-    return results.find(id) != results.end();
+    monitorIn();
+
+    if (stopped) return false;
+
+    //If the results still has a result on the id, we can continue
+    auto found = results.find(id) != results.end();
+
+    monitorOut();
+
+    return found;
 }
 
 /*Cette méthode permet au calculateur de retourner le résultat du calcul.*/
@@ -178,5 +205,18 @@ void ComputationManager::provideResult(Result result) {
 // End Calculateur
 
 void ComputationManager::stop() {
+    monitorIn();
+
+    stopped = true;
+
+    //Lets signal all sleeping threads
+    signal(nextResultReady);
+
+    for (size_t i = 0; i < NB_COMPUTATION_TYPES; ++i) {
+        signal(*notFull.at(i));
+        signal(*notEmpty.at(i));
+    }
+
     // TODO
+    monitorOut();
 }
