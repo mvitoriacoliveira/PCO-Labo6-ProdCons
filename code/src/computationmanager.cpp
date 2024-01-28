@@ -87,16 +87,16 @@ void ComputationManager::abortComputation(int id) {
         if (it != requestMapPerType.end()) {
             requestMapPerType.erase(it);
             signal(*notFull.at(computationIndex));
-
-            // Il faudra libérer le thread qui attend  sur le résultat de la requete/résultat interrompu
-            //bool threadIsWaitingOnResult = (results[id] == results.begin() ? true : false);
-            results.erase(id);
-            //if(threadIsWaitingOnResult){
-            //    signal(newResult);
-            //}
         }
+
         computationIndex++;
     }
+    // Il faudra libérer le thread qui attend  sur le résultat de la requete/résultat interrompu
+    //bool threadIsWaitingOnResult = (results[id] == results.begin() ? true : false);
+    results.erase(id);
+    //if(threadIsWaitingOnResult){
+    //    signal(newResult);
+    //}
 
     monitorOut();
 }
@@ -164,8 +164,7 @@ Request ComputationManager::getWork(ComputationType computationType) {
 /*Pas bloquante (pas d'appel à wait). Si un calculateur travaille déjà sur la requête il devra arrêter le calcul au prochain appel de
 continueWork(id) et ne pas retourner le résultat.*/
 bool ComputationManager::continueWork(int id) {
-    // TODO
-    return true;
+    return results.find(id) != results.end();
 }
 
 /*Cette méthode permet au calculateur de retourner le résultat du calcul.*/
