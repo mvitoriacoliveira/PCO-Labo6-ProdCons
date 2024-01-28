@@ -30,7 +30,6 @@ int ComputationManager::requestComputation(Computation c) {
     size_t computationIndex = static_cast<size_t>(c.computationType);
 
     monitorIn();
-    std::cout << "requestComputation computationIndex" << computationIndex << std::endl;
 
     // Wait while the queue of the current computation type is full
     while (!stopped && requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
@@ -43,11 +42,8 @@ int ComputationManager::requestComputation(Computation c) {
     int id = nextId++;
 
     requests.at(computationIndex).emplace(id, Request(c, id));
-    // std::cout << "id " << id << std::endl;
-    // std::cout << "notEmpty " << notEmpty.size() << std::endl;
-    // std::cout << "computationIndex " << computationIndex << std::endl;
 
-    // Add a result object to result to ensure correct order
+    // Preallocate a result object in results to ensure following results are not returned before
     results.emplace(id, std::nullopt);
 
     // Signal that the queue is not empty
@@ -72,15 +68,18 @@ void ComputationManager::abortComputation(int id) {
 
             //Signal the list of the given computation is not full anymore
             signal(*notFull.at(computationIndex));
+            break;
         }
 
         computationIndex++;
     }
-    results.erase(id);
 
-    //Signal the thread waiting on the result that was aborted
-    if (results.empty() || !results.begin()->second.has_value())
-        signal(nextResultReady);
+    //Delete the result
+    if (results.erase(id) > 0) {
+        //In case, there was a deletion, signal the first thread waiting
+        if (!results.empty() && results.begin()->second.has_value())
+            signal(nextResultReady);
+    }
 
     monitorOut();
 }
@@ -96,7 +95,7 @@ Result ComputationManager::getNextResult() {
 
     // !results[0].has_value doit retourner faux si
 
-    //We have to check or recheck that we have the next result to use is received
+    //We have to check or recheck that the next result to return is received
     while (!stopped && (results.empty() || !results.begin()->second.has_value())) {
         wait(nextResultReady);
     }
@@ -140,8 +139,6 @@ Request ComputationManager::getWork(ComputationType computationType) {
     //we can just take the element pointed by begin().
     Request request = requests.at(computationIndex).begin()->second;
 
-    std::cout << "getWork request type " << computationIndex << " and id " << request.getId() << std::endl;
-
     // Remove the request from the map because it is assigned to a calculator
     requests.at(computationIndex).erase(requests.at(computationIndex).begin());
 
@@ -158,9 +155,11 @@ continueWork(id) et ne pas retourner le résultat.*/
 bool ComputationManager::continueWork(int id) {
     monitorIn();
 
-    if (stopped) return false;
+    if (stopped) {
+        return false;
+    }
 
-    //If the results still has a result on the id, we can continue
+    //If the results still has a pre allocated result with this id, we can continue
     auto found = results.find(id) != results.end();
 
     monitorOut();
@@ -173,9 +172,10 @@ void ComputationManager::provideResult(Result result) {
     // TODO
     monitorIn();
 
-    // Put result in results map
+    //Define the pre allocated result in results map
     results.at(result.getId()) = result;
 
+    //Signal potential waiting clients
     signal(nextResultReady);
 
     monitorOut();
