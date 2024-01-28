@@ -12,7 +12,7 @@
 // afin de faire attendre les threads appelants et aussi afin que le code compile.
 
 #include "computationmanager.h"
-
+#include <iostream>
 
 ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE((size_t) maxQueueSize) {
     // TODO
@@ -28,6 +28,18 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
     }
 }
 
+//TODO: should we keep this ??
+void ComputationManager::dumpRequests() {
+    unsigned type = 0;
+    std::cout << "Dumping requests maps" << std::endl;
+    for (auto requestMap: requests) {
+        std::cout << "map n: " << type << std::endl;
+        for (auto request: requestMap) {
+            std::cout << "request id:" << request.second.getId() << " and data: " << request.second.data << std::endl;
+        }
+        type++;
+    }
+}
 // Client
 // Potentiellement bloquante
 int ComputationManager::requestComputation(Computation c) {
@@ -35,7 +47,9 @@ int ComputationManager::requestComputation(Computation c) {
     size_t computationIndex = static_cast<size_t>(c.computationType);
 
     monitorIn();
+    std::cout << "requestComputation computationIndex" << computationIndex << std::endl;
 
+    dumpRequests();
     // Wait while the queue of the current computation type is full
     while (requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
         wait(*notFull.at(computationIndex));
@@ -43,14 +57,18 @@ int ComputationManager::requestComputation(Computation c) {
 
     // Add the request to the queue
     int id = nextId++;
+    dumpRequests();
 
     requests.at(computationIndex).emplace(id, Request(c, id));
+    std::cout << "id " << id << std::endl;
+    std::cout << "notEmpty " << notEmpty.size() << std::endl;
+    std::cout << "computationIndex " << computationIndex << std::endl;
 
     // Add a result object to result to ensure correct order
     results.emplace(id, std::nullopt);
 
     // Signal that the queue is not empty
-    signal(*notEmpty.at(computationIndex));
+    signal(*(notEmpty.at(computationIndex)));
 
     monitorOut();
     return id;

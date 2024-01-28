@@ -15,11 +15,11 @@
 #define COMPUTATIONMANAGER_H
 
 // Ajoutez les includes dont vous avez besoin ici
+#include <array>
 #include <map>
 #include <memory>
-#include <array>
-#include <vector>
 #include <optional>
+#include <vector>
 
 #include "pcosynchro/pcohoaremonitor.h"
 
@@ -194,6 +194,7 @@ protected:
     std::array<std::map<int, Request>, NB_COMPUTATION_TYPES> requests;
     std::map<int, std::optional<Result>> results;
 
+    void dumpRequests();
 
     // Conditions
     std::vector<std::unique_ptr<Condition>> notFull;//Bloque requestComputation si la queue est pleine
