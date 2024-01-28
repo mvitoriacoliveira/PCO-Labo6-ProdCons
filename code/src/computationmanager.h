@@ -201,7 +201,7 @@ protected:
     //std::vector<std::unique_ptr<Condition>> notEmpty;
     std::vector<std::unique_ptr<Condition>> notEmpty;
     // TODO ajouter d'autres conditions
-    Condition newResult;
+    Condition nextResultReady;
 
     bool stopped = false;
 

@@ -49,7 +49,6 @@ int ComputationManager::requestComputation(Computation c) {
     monitorIn();
     std::cout << "requestComputation computationIndex" << computationIndex << std::endl;
 
-    dumpRequests();
     // Wait while the queue of the current computation type is full
     while (requests.at(computationIndex).size() == MAX_TOLERATED_QUEUE_SIZE) {
         wait(*notFull.at(computationIndex));
@@ -57,18 +56,17 @@ int ComputationManager::requestComputation(Computation c) {
 
     // Add the request to the queue
     int id = nextId++;
-    dumpRequests();
 
     requests.at(computationIndex).emplace(id, Request(c, id));
-    std::cout << "id " << id << std::endl;
-    std::cout << "notEmpty " << notEmpty.size() << std::endl;
-    std::cout << "computationIndex " << computationIndex << std::endl;
+    // std::cout << "id " << id << std::endl;
+    // std::cout << "notEmpty " << notEmpty.size() << std::endl;
+    // std::cout << "computationIndex " << computationIndex << std::endl;
 
     // Add a result object to result to ensure correct order
     results.emplace(id, std::nullopt);
 
     // Signal that the queue is not empty
-    signal(*(notEmpty.at(computationIndex)));
+    signal(*notEmpty.at(computationIndex));
 
     monitorOut();
     return id;
@@ -86,17 +84,18 @@ void ComputationManager::abortComputation(int id) {
         auto it = requestMapPerType.find(id);
         if (it != requestMapPerType.end()) {
             requestMapPerType.erase(it);
+
+			//Signal the list of the given computation is not full anymore
             signal(*notFull.at(computationIndex));
         }
 
         computationIndex++;
     }
-    // Il faudra libérer le thread qui attend  sur le résultat de la requete/résultat interrompu
-    //bool threadIsWaitingOnResult = (results[id] == results.begin() ? true : false);
     results.erase(id);
-    //if(threadIsWaitingOnResult){
-    //    signal(newResult);
-    //}
+
+    //Signal the thread waiting on the result that was aborted
+    if (results.empty() || !results.begin()->second.has_value())
+        signal(nextResultReady);
 
     monitorOut();
 }
@@ -111,15 +110,17 @@ Result ComputationManager::getNextResult() {
     monitorIn();
 
     // !results[0].has_value doit retourner faux si
+
+    //We have to check or recheck that we have the next result to use is received
     while (results.empty() || !results.begin()->second.has_value()) {
-        //wait(notEmpty); //TODO how to get computation type?
-        wait(newResult);
+        wait(nextResultReady);
     }
 
     Result res = results.begin()->second.value();
     results.erase(results.begin());
 
-    //signal(notFull); //TODO how to get computation type?
+    //Signal the next thread that could be waiting on the next result
+    signal(nextResultReady);
 
     monitorOut();
 
@@ -146,8 +147,8 @@ Request ComputationManager::getWork(ComputationType computationType) {
     }
 
     // Get the request for specified type
-	//We take the element with the smallest id, as a map is indexed by id and ordered by index
-	//we can just take the element pointed by begin().
+    //We take the element with the smallest id, as a map is indexed by id and ordered by index
+    //we can just take the element pointed by begin().
     Request request = requests.at(computationIndex).begin()->second;
 
     // Remove the request from the map because it is assigned to a calculator
@@ -175,7 +176,7 @@ void ComputationManager::provideResult(Result result) {
     // Put result in results map
     results.at(result.getId()) = result;
 
-    signal(newResult);
+    signal(nextResultReady);
 
     monitorOut();
 }
