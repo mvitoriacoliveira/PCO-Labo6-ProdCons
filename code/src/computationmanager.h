@@ -19,6 +19,7 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <optional>
 
 #include "pcosynchro/pcohoaremonitor.h"
 
@@ -191,12 +192,15 @@ protected:
 
     // Buffer structure
     std::array<std::map<int, Request>, NB_COMPUTATION_TYPES> requests;
+    std::map<int, std::optional<Result>> results;
 
 
     // Conditions
     std::vector<std::unique_ptr<Condition>> notFull;//Bloque requestComputation si la queue est pleine
+    //std::vector<std::unique_ptr<Condition>> notEmpty;
     std::vector<std::unique_ptr<Condition>> notEmpty;
     // TODO ajouter d'autres conditions
+    Condition newResult;
 
     bool stopped = false;
 
