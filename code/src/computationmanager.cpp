@@ -146,10 +146,11 @@ Request ComputationManager::getWork(ComputationType computationType) {
     }
 
     // Get the request for specified type
-    // (Gets always first request in the map because request is removed from requests map as it is assigned to a calculator)
-    Request request = requests.at(computationIndex).at(0);
+	//We take the element with the smallest id, as a map is indexed by id and ordered by index
+	//we can just take the element pointed by begin().
+    Request request = requests.at(computationIndex).begin()->second;
 
-    // Remove the request from the map
+    // Remove the request from the map because it is assigned to a calculator
     requests.at(computationIndex).erase(requests.at(computationIndex).begin());
 
     // Signal that the queue is not full
