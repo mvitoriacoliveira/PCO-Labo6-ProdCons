@@ -60,9 +60,18 @@ En plus des tests fournis, nous avons vérifié le bon fonctionnement de ces mé
 Autre que les tests déjà fournis, nous avons effectués plusieurs tests via l'interface. Nous avons vérifié que les résultats étaient retournés dans le bon ordre et le cas où `getNextResult()` est censé bloquer. 
 
 ## Etape 3
-1. 
+1. `void abortComputation(int id)`: pour annuler un calcul et gérer les 4 cas possibles de la donnée, il suffit de 
+   - supprimer le request dans `requests` (on ne sait pas de quel type de calcul il vient donc il faut regarder dans chaque map). Au passage on signal `notFull` comme la map n'est plus pleine. 
+   - supprimer l'objet result (peu importe s'il est rempli ou non) de `results`
+   - Si le prochain résultat est disponible juste après sa suppression, il faut signaler `nextResultReady` (ex: calcul 1 en cours, calcul 2 terminé, calcul 1 annulé, le résultat 2 peut être retourné par `getNextResult()`).
+   - Si un élément ne se trouve pas dans une map car le job a déjà été annulé ou n'existe pas sous cette id, il n'y aura aucun impact (pas de suppression, ni de signal).
+1. `bool continueWork(int id)`
+   - Un engine peut continuer de travailler si le calcul n'a pas été annulé, dans notre cas cela se traduit par la présence d'un élément dans notre map `results`.
+
 **Tests**
-1. 
+1. On demande 12 (2 tout de suite pris puis 10 autres) calculs de type A très vite pour remplir la map, on en relance 2 directement qu'ils sont mis en attente (pas directement affichés), on en annule 3 pour voir si les 2 en attentes sont libérés et si on arrive encore à y remettre 1 dernier sans attente.
+1. Annuler un calcul déjà annulé n'a pas d'impact
+1. Si on lance un calcul de type A puis de type B, qu'on attend que le calcul B soit disponible, qu'on cancel le A, le résultat B est directement retourné.
 
 ## Etape 4
 
