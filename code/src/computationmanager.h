@@ -27,10 +27,12 @@
 /**
  * @brief The ComputationType enum represents the abstract computation types that are available
  */
-enum class ComputationType { A,
-                             B,
-                             C,
-                             Count  // Count must be the last element of the enum, as it is used to know the number of elements
+enum class ComputationType {
+    A,
+    B,
+    C,
+    // Count must be the last element of the enum, as it is used to know the number of elements
+    Count
 };
 
 constexpr static std::size_t NB_COMPUTATION_TYPES = static_cast<std ::size_t>(ComputationType::Count);
@@ -202,6 +204,7 @@ protected:
 
     bool stopped = false;
 
+    // Stop the execution if stopped == true and signal the given condition in cascade
     void stopExecutionIfEndOfService(Condition &cond);
 
 private:

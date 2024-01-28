@@ -13,7 +13,6 @@
 // afin de faire attendre les threads appelants et aussi afin que le code compile.
 
 #include "computationmanager.h"
-#include <iostream>
 
 ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_SIZE((size_t) maxQueueSize) {
     // Initialize the request vector with vectors of the specified size for each ComputationType
@@ -24,9 +23,7 @@ ComputationManager::ComputationManager(int maxQueueSize) : MAX_TOLERATED_QUEUE_S
 }
 
 // Client
-// Potentiellement bloquante
 int ComputationManager::requestComputation(Computation c) {
-    // TODO
     size_t computationIndex = static_cast<size_t>(c.computationType);
 
     monitorIn();
@@ -53,9 +50,7 @@ int ComputationManager::requestComputation(Computation c) {
     return id;
 }
 
-/*Pas bloquante (pas d'appel à wait). Cette méthode permet d’annuler un calcul en cours grâce à son identifiant.*/
 void ComputationManager::abortComputation(int id) {
-    // TODO
     monitorIn();
 
     size_t computationIndex = 0;
@@ -84,16 +79,8 @@ void ComputationManager::abortComputation(int id) {
     monitorOut();
 }
 
-/*L’appel à getNextResult() est potentiellement bloquant si le prochain
-résultat n’est pas encore disponible*/
 Result ComputationManager::getNextResult() {
-    // TODO
-    // Replace all of the code below by your code
-
-    // Filled with some code in order to make the thread in the UI wait
     monitorIn();
-
-    // !results[0].has_value doit retourner faux si
 
     //We have to check or recheck that the next result to return is received
     while (!stopped && (results.empty() || !results.begin()->second.has_value())) {
@@ -115,13 +102,7 @@ Result ComputationManager::getNextResult() {
 // End Client
 
 // Calculateur
-// Potentiellement bloquante
-/* Cette méthode permet au calculateur de demander du travail du type computationType,
-qu’il reçoit sous forme d’une requête de calcul. S’il n’y a pas de calcul à effectuer, l’appel de getWork() mettra le thread en attente sur une condition
-dans le moniteur (buffer) et il sera réveillé lorsqu’il y en aura. */
 Request ComputationManager::getWork(ComputationType computationType) {
-    // TODO
-    // Replace all of the code below by your code
     size_t computationIndex = static_cast<size_t>(computationType);
 
     // Filled with arbitrary code in order to make the callers wait
@@ -135,8 +116,8 @@ Request ComputationManager::getWork(ComputationType computationType) {
     stopExecutionIfEndOfService(*notEmpty.at(computationIndex));
 
     // Get the request for specified type
-    //We take the element with the smallest id, as a map is indexed by id and ordered by index
-    //we can just take the element pointed by begin().
+    // We take the element with the smallest id, as a map is indexed by id and ordered by index
+    // we can just take the element pointed by begin().
     Request request = requests.at(computationIndex).begin()->second;
 
     // Remove the request from the map because it is assigned to a calculator
@@ -150,8 +131,6 @@ Request ComputationManager::getWork(ComputationType computationType) {
     return request;
 }
 
-/*Pas bloquante (pas d'appel à wait). Si un calculateur travaille déjà sur la requête il devra arrêter le calcul au prochain appel de
-continueWork(id) et ne pas retourner le résultat.*/
 bool ComputationManager::continueWork(int id) {
     monitorIn();
 
@@ -167,9 +146,7 @@ bool ComputationManager::continueWork(int id) {
     return found;
 }
 
-/*Cette méthode permet au calculateur de retourner le résultat du calcul.*/
 void ComputationManager::provideResult(Result result) {
-    // TODO
     monitorIn();
 
     //Define the pre allocated result in results map
@@ -195,7 +172,6 @@ void ComputationManager::stop() {
         signal(*notEmpty.at(i));
     }
 
-    // TODO
     monitorOut();
 }
 
